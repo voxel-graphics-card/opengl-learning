@@ -2,7 +2,6 @@
 
 #include <glad/gl.h>
 #include <string_view>
-#include <iostream>
 
 class GLErrorHandler {
     public:

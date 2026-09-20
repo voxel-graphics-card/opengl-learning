@@ -1,6 +1,5 @@
 #include "debug.hpp"
-
-#include <iostream>
+#include "logger.hpp"
 
 namespace
 {
@@ -151,22 +150,16 @@ auto GLErrorHandler::checkErrors(
 
     while (GLenum error = glGetError())
     {
-        std::cerr
-            << "[OpenGL Error] "
-            << errorToString(error)
-            << " (0x"
-            << std::hex
-            << error
-            << std::dec
-            << ")\n"
-            << "    at: "
-            << expr
-            << '\n'
-            << "    in: "
-            << file
-            << ':'
-            << line
-            << '\n';
+        KERROR(
+            "[OpenGL Error] %s (0x%#x)"
+            "\n    at: %s"
+            "\n    in: %s:%d",
+            errorToString(error).data(),
+            error,
+            expr.data(),
+            file.data(),
+            line
+        );
 
         ok = false;
     }
@@ -184,19 +177,30 @@ void GLAPIENTRY GLErrorHandler::debugCallback(
     [[maybe_unused]] const void* userParam
 )
 {
-    std::cerr
-        << "[GL Debug] {"
-        << id
-        << "} "
-        << typeToString(type)
-        << " | source: "
-        << sourceToString(source)
-        << " | severity: "
-        << severityToString(severity)
-        << '\n'
-        << "    "
-        << message
-        << '\n';
+    const char* typeText = typeToString(type).data();
+    const char* sourceText = sourceToString(source).data();
+    const char* severityText = severityToString(severity).data();
+    const char* payload = "[GL Debug] {%u} %s | source: %s | severity: %s\n    %s";
+
+    switch (severity)
+    {
+    case GL_DEBUG_SEVERITY_HIGH:
+        KERROR(payload, id, typeText, sourceText, severityText, message);
+        break;
+
+    case GL_DEBUG_SEVERITY_MEDIUM:
+    case GL_DEBUG_SEVERITY_LOW:
+        KWARN(payload, id, typeText, sourceText, severityText, message);
+        break;
+
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+        KINFO(payload, id, typeText, sourceText, severityText, message);
+        break;
+
+    default:
+        KDEBUG(payload, id, typeText, sourceText, severityText, message);
+        break;
+    }
 
     if (severity == GL_DEBUG_SEVERITY_HIGH)
     {
