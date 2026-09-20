@@ -102,18 +102,18 @@ void main()
 ```
 #version 430 core
 
-uniform vec4 ourColor;
+uniform vec4 myColor;
 
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = ourColor;
+    FragColor = myColor;
 }
 ```
 
 These match what `src/main.cpp` expects: attribute index 0 for `aPos`, and the
-`ourColor` uniform set via `shader.setVec4(...)`.
+`myColor` uniform set via `shader.setVec4(...)`.
 
 ## Tests
 
